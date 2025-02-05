@@ -2,6 +2,8 @@ import json
 import requests
 from PyPDF2 import PdfReader
 
+MODEL="llama2"
+
 def extract_text_from_pdf(pdf_path):
     """Extracts all text from the given PDF file."""
     text = ""
@@ -16,7 +18,7 @@ def extract_text_from_pdf(pdf_path):
         print(f"Error reading PDF: {e}")
     return text
 
-def ask_questions_about_book(book_text, max_prompt_length=2000):
+def ask_questions_about_book(book_text, focus: str, max_prompt_length=2000,):
     """
     Constructs a prompt with the book text (truncated if necessary)
     and calls the local LLM API on Ollama to generate questions about the book.
@@ -27,8 +29,10 @@ def ask_questions_about_book(book_text, max_prompt_length=2000):
     # Construct the prompt for the LLM.
     prompt = (
         "You are an insightful literature teacher. "
-        "Based on the following excerpt from a book, please generate several thoughtful, "
-        "open-ended questions that could help a reader reflect on and understand the content better:\n\n"
+        "Based on the following excerpt from a book, please provide one highly specific"
+        "open-ended question that could help a reader reflect on and understand the content better:\n\n"
+        "Wrap the question in <q> and <q/> tags."
+        f"Ensure the question is focused around {focus}"
         f"{truncated_text}\n\nQuestions:"
     )
 
@@ -39,7 +43,7 @@ def ask_questions_about_book(book_text, max_prompt_length=2000):
         "prompt": prompt,
         "max_tokens": 150,      # Adjust based on how long you expect the output to be.
         "temperature": 0.7,     # Creativity of the LLM output.
-        "model": "llama2",      # Replace with the actual model name.
+        "model": MODEL,      # Replace with the actual model name.
         "stream": False         # Set to True for long-running generation tasks.
     }
     headers = {"Content-Type": "application/json"}
@@ -55,6 +59,17 @@ def ask_questions_about_book(book_text, max_prompt_length=2000):
     except requests.exceptions.RequestException as e:
         return f"Error during API call: {e}"
 
+def extract_question(question_string):
+    start_tag = "<q>"
+    end_tag = "<q/>"
+    start_index = questions.find(start_tag)
+    end_index = questions.find(end_tag)
+
+    if start_index != -1 and end_index != -1:
+      extracted_question = questions[start_index + len(start_tag):end_index].strip()
+    else:
+      return question_string
+
 if __name__ == "__main__":
     # Path to the PDF file of the book.
     pdf_path = "/Users/luqmaan/personal/paper.pdf"  # <-- Replace with your PDF file path.
@@ -65,11 +80,16 @@ if __name__ == "__main__":
     if not book_text:
         print("Failed to extract any text from the PDF.")
         exit(1)
-
-    # Step 2: Call the local LLM via REST API to get questions.
-    print("Requesting questions from the local LLM...")
-    questions = ask_questions_about_book(book_text)
     
+    # Ask the user what they want to focus on.
+    focus = input("What aspect of the book would you like to focus on (e.g., themes, characters, plot)? ")
+    
+    # Step 2: Call the local LLM via REST API to get questions.
+    print("Requesting question from the local LLM...")
+    questions = ask_questions_about_book(book_text, focus)
+    # Extract the question from the response using <q> and <q/> tags.
+    extracted_question = extract_question(questions)
+
     # Step 3: Output the questions.
-    print("\nQuestions about the book:")
-    print(questions)
+    print("\nQuestion about the book:" )
+    print(extracted_question)
