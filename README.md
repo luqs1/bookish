@@ -1,6 +1,6 @@
 # Bookish
 
-Bookish is a command-line tool that uses Ollama to answer questions about the content of a PDF file by leveraging your local LLM running on ollama.
+Bookish is a command-line tool that asks a question about the content of a PDF file by leveraging your local LLM running on ollama.
 
 # Installation Guide
 
