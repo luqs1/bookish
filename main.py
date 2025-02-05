@@ -1,8 +1,17 @@
 import json
 import requests
 from PyPDF2 import PdfReader
+import argparse
 
-MODEL="llama2"
+def parse_arguments():
+  parser = argparse.ArgumentParser(description="Generate questions about a book using a local LLM.")
+  parser.add_argument("--pdf_path", type=str, required=True, help="The path to the PDF file of the book.")
+  parser.add_argument("--model", type=str, required=False, default="llama2", help="The model name to use for the LLM.")
+  return parser.parse_args()
+
+args = parse_arguments()
+MODEL = args.model
+PDF_PATH = args.pdf_path
 
 def extract_text_from_pdf(pdf_path):
     """Extracts all text from the given PDF file."""
@@ -72,7 +81,7 @@ def extract_question(question_string):
 
 if __name__ == "__main__":
     # Path to the PDF file of the book.
-    pdf_path = "/Users/luqmaan/personal/paper.pdf"  # <-- Replace with your PDF file path.
+    pdf_path = PDF_PATH
 
     # Step 1: Extract the book text.
     print("Extracting text from the PDF...")
