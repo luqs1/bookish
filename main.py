@@ -27,13 +27,11 @@ def extract_text_from_pdf(pdf_path):
         print(f"Error reading PDF: {e}")
     return text
 
-def ask_questions_about_book(book_text, focus: str, max_prompt_length=2000,):
+def ask_questions_about_book(book_text, focus: str):
     """
     Constructs a prompt with the book text (truncated if necessary)
     and calls the local LLM API on Ollama to generate questions about the book.
     """
-    # Truncate the text if it's too long for the prompt.
-    truncated_text = book_text[:max_prompt_length]
     
     # Construct the prompt for the LLM.
     prompt = (
@@ -42,7 +40,7 @@ def ask_questions_about_book(book_text, focus: str, max_prompt_length=2000,):
         "open-ended question that could help a reader reflect on and understand the content better:\n\n"
         "Wrap the question in <q> and <q/> tags."
         f"Ensure the question is focused around {focus}"
-        f"{truncated_text}\n\nQuestions:"
+        f"{book_text}\n\nQuestions:"
     )
 
     # Define the API endpoint and payload.
